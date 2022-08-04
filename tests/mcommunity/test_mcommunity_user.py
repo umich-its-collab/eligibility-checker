@@ -63,8 +63,9 @@ class MCommunityUserTestCase(unittest.TestCase):
         self.assertEqual(f'{test_user}@umich.edu', self.user.email)
 
     def test_user_not_exists(self):
-        user = MCommunityUser('fake', test_app, test_secret)
-        self.assertEqual(False, user.exists)
+        with self.assertRaises(NameError):
+            user = MCommunityUser('fake', test_app, test_secret)
+            self.assertEqual(False, user.exists)
 
     def test_user_exists(self):
         self.assertEqual(True, self.user.exists)
@@ -153,10 +154,11 @@ class MCommunityUserTestCase(unittest.TestCase):
         self.assertEqual('Alumni', user.highest_affiliation)
 
     def test_populate_highest_affiliation_na(self):
-        user = MCommunityUser('fake', test_app, test_secret)
-        self.assertEqual('', user.highest_affiliation)
-        user.populate_highest_affiliation()
-        self.assertEqual('NA', user.highest_affiliation)
+        with self.assertRaises(NameError):
+            user = MCommunityUser('fake', test_app, test_secret)
+            self.assertEqual('', user.highest_affiliation)
+            user.populate_highest_affiliation()
+            self.assertEqual('NA', user.highest_affiliation)
 
     def tearDown(self) -> None:
         self.patcher.stop()

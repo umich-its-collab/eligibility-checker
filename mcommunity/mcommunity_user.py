@@ -37,7 +37,7 @@ class MCommunityUser:
         self.raw_user = self._populate_user_data(self.dn)
 
         if not self.raw_user:
-            logger.info(f'No user found in MCommunity for {self.dn}.')
+            raise NameError(f'No user found in MCommunity for {self.dn}.')
         else:
             self.exists = True
             self.entityid = self._decode('entityid')
