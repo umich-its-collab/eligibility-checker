@@ -1,15 +1,15 @@
 import logging
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from mcommunity.mcommunity_user import MCommunityUser
-from tests.mcommunity.test_mcommunity_base import test_app, test_secret
 from tests.mcommunity import mcommunity_mocks
+from tests.mcommunity.test_mcommunity_base import test_app, test_secret
 
 test_user = 'nemcardf'
 
 
-def custom_side_effect(*args, **kwargs):
+def custom_side_effect(*args):
     user = args[0]
     if user == 'nemcardf':
         return mcommunity_mocks.faculty_mock
