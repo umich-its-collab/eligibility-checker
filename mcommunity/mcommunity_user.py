@@ -54,8 +54,8 @@ class MCommunityUser:
         :return: boolean for whether or not they are eligible
         """
         eligible = False
-        service_eligibility = self.populate_service_entitlements()
-        for i in service_eligibility:
+        self.populate_service_entitlements()
+        for i in self.service_entitlements:
             r = json.loads(i)
             if r.get('system') == service:
                 if r.get('eligibility') in ['yes', 'yesDelay', 'yesImmed']:
@@ -81,20 +81,19 @@ class MCommunityUser:
         else:
             return 0
 
-    def populate_affiliations(self) -> list:
+    def populate_affiliations(self) -> None:
         """
-        Add each affiliation for the user as a string to self.affiliations so we can only use it when we need it.
-        :return: the list of affiliations (also stored on self.affiliations)
+        Populate the affiliations attribute from raw_user if it has not already been done.
+        :return: None
         """
         if not self.affiliations:  # Don't overwrite if the list is not empty; it likely was already populated
             self.affiliations = self._decode('umichInstRoles', return_str_if_single_item_list=False)
-        return self.affiliations
 
-    def populate_highest_affiliation(self) -> str:
+    def populate_highest_affiliation(self) -> None:
         """
         Find the highest-level affiliation for the user. Levels in descending order: Faculty, RegularStaff, Student,
-        TemporaryStaff, SponsoredAffiliate, Retiree, Alumni.
-        :return: the string of the highest affiliation (also stored on self.highest_affiliation)
+        TemporaryStaff, SponsoredAffiliate, Retiree, Alumni. Store it on the highest_affiliation attribute.
+        :return: None
         """
         self.populate_affiliations()  # Just to make sure; it won't run again if it was already done
         role = ' '.join(self.affiliations)
@@ -114,12 +113,14 @@ class MCommunityUser:
             self.highest_affiliation = 'Alumni'
         else:
             self.highest_affiliation = 'NA'
-        return self.highest_affiliation
 
-    def populate_service_entitlements(self) -> list:
+    def populate_service_entitlements(self) -> None:
+        """
+        Populate the service entitlements attribute from raw_user if it has not already been done.
+        :return: None
+        """
         if not self.service_entitlements:  # Don't overwrite if the list is not empty; it likely was already populated
             self.service_entitlements = self._decode('umichServiceEntitlement', return_str_if_single_item_list=False)
-        return self.service_entitlements
 
     ###################
     # Private Methods #
