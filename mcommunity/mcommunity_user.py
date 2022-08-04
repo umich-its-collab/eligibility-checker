@@ -16,17 +16,25 @@ class MCommunityUser:
     exists: bool = False
     entityid: str = ''  # a.k.a. UMID
     name: str = ''  # Display name, a.k.a. preferred name
-    affiliations: list = []  # Populate via _populate_affiliations
-    highest_affiliation: str = ''  # Populate via _populate_highest_affiliation
-    service_entitlements: list = []  # Populate via _populate_service_entitlements
+    affiliations: list = []  # Populate via populate_affiliations
+    highest_affiliation: str = ''  # Populate via populate_highest_affiliation
+    service_entitlements: list = []  # Populate via populate_service_entitlements
 
     raw_user: list
+
+    mcommunity_app_cn: str = ''
+    mcommunity_secret: str = ''
+    ldap_attributes: list = [
+        '*', 'umichServiceEntitlement', 'entityid', 'umichDisplaySN', 'umichNameOfRecord', 'displayName'
+    ]
 
     def __init__(self, uniqname: str, mcommunity_app_cn, mcommunity_secret):
         self.dn: str = uniqname
         self.email: str = self.dn + '@umich.edu'
+        self.mcommunity_app_cn = mcommunity_app_cn
+        self.mcommunity_secret = mcommunity_secret
 
-        self.raw_user = self._get_user_data(self.dn, mcommunity_app_cn, mcommunity_secret)
+        self.raw_user = self._get_user_data(self.dn)
 
         if not self.raw_user:
             logger.info(f'No user found in MCommunity for {self.dn}.')
@@ -116,15 +124,14 @@ class MCommunityUser:
     ###################
     # Private Methods #
     ###################
-    @staticmethod
-    def _get_user_data(dn, mcommunity_app_cn, mcommunity_secret):
+    def _get_user_data(self, dn):
         return ldap_connect(
-            mcommunity_app_cn,
-            mcommunity_secret
+            self.mcommunity_app_cn,
+            self.mcommunity_secret
         ).search_st('ou=People,dc=umich,dc=edu',
                     ldap.SCOPE_SUBTREE,
                     f'uid={dn}',
-                    ['*', 'umichServiceEntitlement', 'entityid', 'umichDisplaySN', 'umichNameOfRecord', 'displayName']
+                    self.ldap_attributes
                     )
 
     def _decode(self, which_key, return_str_if_single_item_list=True) -> Union[str, list]:
