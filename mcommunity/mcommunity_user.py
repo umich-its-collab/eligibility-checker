@@ -72,7 +72,7 @@ class MCommunityUser:
         if not self.highest_affiliation:
             self.populate_highest_affiliation()
         if self.highest_affiliation == 'SponsoredAffiliate':
-            if re.match('^um\d+', self.dn):
+            if re.match('^um[0-9]+', self.dn):
                 return 3
             elif re.match('^99', self.entityid):
                 return 2
