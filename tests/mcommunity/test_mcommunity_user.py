@@ -36,7 +36,7 @@ def custom_side_effect(*args, **kwargs):
 class MCommunityUserTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.patcher = patch('mcommunity.mcommunity_user.MCommunityUser._get_user_data')
+        self.patcher = patch('mcommunity.mcommunity_user.MCommunityUser._populate_user_data')
         self.mock = self.patcher.start()
         self.mock.side_effect = custom_side_effect
         self.user = MCommunityUser(test_user, test_app, test_secret)

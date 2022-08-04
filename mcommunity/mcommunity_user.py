@@ -20,8 +20,8 @@ class MCommunityUser:
     highest_affiliation: str = ''  # Populate via populate_highest_affiliation
     service_entitlements: list = []  # Populate via populate_service_entitlements
 
-    raw_user: list
-
+    raw_user: list = []
+    
     mcommunity_app_cn: str = ''
     mcommunity_secret: str = ''
     ldap_attributes: list = [
@@ -34,7 +34,7 @@ class MCommunityUser:
         self.mcommunity_app_cn = mcommunity_app_cn
         self.mcommunity_secret = mcommunity_secret
 
-        self.raw_user = self._get_user_data(self.dn)
+        self.raw_user = self._populate_user_data(self.dn)
 
         if not self.raw_user:
             logger.info(f'No user found in MCommunity for {self.dn}.')
@@ -124,7 +124,12 @@ class MCommunityUser:
     ###################
     # Private Methods #
     ###################
-    def _get_user_data(self, dn):
+    def _populate_user_data(self, dn) -> list:
+        """
+        Called during init to get the user's data from LDAP (MCommunity) so it can be stored on self.raw_user
+        :param dn: the user's uniqname
+        :return: list of user data
+        """
         return ldap_connect(
             self.mcommunity_app_cn,
             self.mcommunity_secret
