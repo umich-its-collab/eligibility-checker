@@ -4,9 +4,7 @@ import unittest
 import ldap
 
 from mcommunity.mcommunity_base import ldap_connect
-
-test_app = 'ITS-FakeTestApp-McDirApp001'
-test_secret = 'test123'
+from tests.mcommunity.mcommunity_mocks import test_app, test_secret
 
 
 class MCommunityBaseTestCase(unittest.TestCase):
