@@ -48,9 +48,9 @@ class MCommunityUser:
     ##################
     def check_service_entitlement(self, service: str = 'enterprise') -> bool:
         """
-        Check whether the user is eligible for a service based on service entitlement; note that this does NOT take
-        into account the override groups, and should be used in conjunction with override group checking
-        :param service: the service to look for in the service eligibility list
+        Check whether the user is eligible for a service based on uSE; note that this does NOT take into account the
+        override groups, and should be used in conjunction with override group checking at the EligibilityChecker level
+        :param service: the uSE to look for in the service_entitlement list
         :return: boolean for whether or not they are eligible
         """
         eligible = False
@@ -116,7 +116,7 @@ class MCommunityUser:
 
     def populate_service_entitlements(self) -> None:
         """
-        Populate the service entitlements attribute from raw_user if it has not already been done.
+        Populate the service_entitlement entitlements attribute from raw_user if it has not already been done.
         :return: None
         """
         if not self.service_entitlements:  # Don't overwrite if the list is not empty; it likely was already populated
