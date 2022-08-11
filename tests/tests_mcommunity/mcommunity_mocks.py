@@ -35,7 +35,7 @@ def mcomm_user_side_effect(*args):
 
 def mcomm_group_side_effect(*args):
     group = args[0]
-    if group == 'test-group':
+    if group in ['test-group', 'collab-iam-admins']:
         return group_mock
     else:
         return []
