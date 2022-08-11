@@ -29,13 +29,17 @@ def mcomm_user_side_effect(*args):
         return retiree_mock
     elif user == 'nemcarda':
         return alumni_mock
+    elif user == 'nemcardferr':
+        return faculty_missing_use_mock
+    elif user == 'nemcardaerr':
+        return alumni_with_use_mock
     else:
         return []
 
 
 def mcomm_group_side_effect(*args):
     group = args[0]
-    if group == 'test-group':
+    if group in ['test-group', 'collab-iam-admins']:
         return group_mock
     else:
         return []
@@ -103,6 +107,12 @@ retiree_mock[0][1]['umichServiceEntitlement'] = ineligible_service_entitlements
 
 alumni_mock = change_uniqname_on_mock(retiree_mock, 'nemcarda')
 alumni_mock[0][1]['umichInstRoles'] = alumni_mock[0][1]['umichInstRoles'][1:]
+
+faculty_missing_use_mock = change_uniqname_on_mock(faculty_mock, 'nemcardferr')
+faculty_missing_use_mock[0][1]['umichServiceEntitlement'] = ineligible_service_entitlements
+
+alumni_with_use_mock = change_uniqname_on_mock(alumni_mock, 'nemcardaerr')
+alumni_with_use_mock[0][1]['umichServiceEntitlement'] = faculty_mock[0][1]['umichServiceEntitlement'].copy()
 
 group_mock = [
     ('cn=test-group,ou=User Groups,ou=Groups,dc=umich,dc=edu', {
