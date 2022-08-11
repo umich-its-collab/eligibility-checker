@@ -9,6 +9,41 @@ def change_uniqname_on_mock(mock: list, new_uniqname: str):
     return copy
 
 
+def mcomm_user_side_effect(*args):
+    user = args[0]
+    if user == 'nemcardf':
+        return faculty_mock
+    elif user == 'nemcardrs':
+        return regstaff_mock
+    elif user == 'nemcards':
+        return student_mock
+    elif user == 'nemcardts':
+        return tempstaff_mock
+    elif user == 'nemcardsa1':
+        return t1sponsored_mock
+    elif user == 'nemcardsa2':
+        return t2sponsored_mock
+    elif user == 'um999999':
+        return t3sponsored_mock
+    elif user == 'nemcardr':
+        return retiree_mock
+    elif user == 'nemcarda':
+        return alumni_mock
+    else:
+        return []
+
+
+def mcomm_group_side_effect(*args):
+    group = args[0]
+    if group == 'test-group':
+        return group_mock
+    else:
+        return []
+
+
+test_app = 'ITS-FakeTestApp-McDirApp001'
+test_secret = 'test123'
+
 faculty_mock = [(
     'uid=nemcardf,ou=People,dc=umich,dc=edu',
     {
@@ -69,4 +104,10 @@ retiree_mock[0][1]['umichServiceEntitlement'] = ineligible_service_entitlements
 alumni_mock = change_uniqname_on_mock(retiree_mock, 'nemcarda')
 alumni_mock[0][1]['umichInstRoles'] = alumni_mock[0][1]['umichInstRoles'][1:]
 
-fake_mock = []
+group_mock = [
+    ('cn=test-group,ou=User Groups,ou=Groups,dc=umich,dc=edu', {
+        'umichGroupEmail': [b'test.group'],
+        'owner': [b'uid=nemcardf,ou=People,dc=umich,dc=edu', b'uid=nemcardrs,ou=People,dc=umich,dc=edu'],
+        'member': [b'uid=nemcardf,ou=People,dc=umich,dc=edu', b'uid=nemcardrs,ou=People,dc=umich,dc=edu',
+                   b'uid=nemcarda,ou=People,dc=umich,dc=edu', b'uid=nemcards,ou=People,dc=umich,dc=edu'],
+        'cn': [b'test-group']})]
