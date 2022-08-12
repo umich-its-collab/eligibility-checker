@@ -31,6 +31,7 @@ class EligibilityChecker(ABC):
             for group in self.override_groups:  # Populate override_group_members
                 self.override_group_members += MCommunityGroup(
                     group, self.mcommunity_app_cn, self.mcommunity_secret).members
+        self._validate()
 
     ##################
     # Public Methods #
@@ -59,14 +60,14 @@ class EligibilityChecker(ABC):
                     eligible_affiliations = self._check_affiliation_eligibility(user)
                     if not eligible and eligible_affiliations:
                         raise RuntimeError(
-                            f'Highest affiliation {user.highest_affiliation} shows {user.dn} should have a valid '
+                            f'Highest affiliation {user.highest_affiliation} shows {user.name} should have a valid '
                             f'{self.service_entitlement} entitlement but they do not.\n EntityID: {user.entityid}\n'
                             f'Service Entitlements: \n{user.service_entitlements}\n Affiliations: \n{user.affiliations}'
                         )
                     else:
                         logger.info(
                             f'{self.service_entitlement} service entitlement ({eligible}) and affiliations '
-                            f'{user.highest_affiliation} validated for {user.dn}.'
+                            f'{user.highest_affiliation} validated for {user.name}.'
                         )
                         return eligible
                 else:
@@ -105,23 +106,23 @@ class EligibilityChecker(ABC):
         if sa_type:  # This person is a sponsored affiliate type 1, 2, or 3
             if sa_type in self.eligible_sa_types:
                 logger.info(
-                    f'{user.dn} is ELIGIBLE: sponsored affiliates t{sa_type} are eligible for {self.service_friendly}.'
+                    f'{user.name} ELIGIBLE: sponsored affiliates t{sa_type} are eligible for {self.service_friendly}.'
                 )
                 return True
             else:
                 logger.info(
-                    f'{user.dn} is NOT ELIGIBLE: sponsored affiliates t{sa_type} are not eligible for '
+                    f'{user.name} NOT ELIGIBLE: sponsored affiliates t{sa_type} are not eligible for '
                     f'{self.service_friendly}.'
                 )
                 return False
         elif user.highest_affiliation in self.eligible_affiliations_minus_sa:
             logger.info(
-                f'{user.dn} is ELIGIBLE: {user.highest_affiliation} are eligible for {self.service_friendly}.'
+                f'{user.name} ELIGIBLE: {user.highest_affiliation} are eligible for {self.service_friendly}.'
             )
             return True
         else:  # Neither sponsored affiliate type nor highest affiliation are in the eligible affiliations for service
             logger.info(
-                f'{user.dn} is NOT ELIGIBLE: {user.highest_affiliation} are not eligible for {self.service_friendly}.'
+                f'{user.name} NOT ELIGIBLE: {user.highest_affiliation} are not eligible for {self.service_friendly}.'
             )
             return False
 
@@ -133,3 +134,30 @@ class EligibilityChecker(ABC):
         :return: bool for whether deprovision was successful
         """
         pass
+
+    def _validate(self) -> None:
+        """
+        Validate the class attributes.
+        :return:
+        """
+        if 'collab-iam-admins' not in self.override_groups:
+            raise RuntimeError(f'collab-iam-admins is missing from the override_groups: {self.override_groups}')
+        if self.eligible_affiliations_minus_sa:
+            if 'SponsoredAffiliate' in self.eligible_affiliations_minus_sa:
+                raise RuntimeError(f'SponsoredAffiliate cannot be in eligible_affiliations_minus_sa. Eligible '
+                                   f'SponsoredAffiliate type numbers go in eligible_sa_types')
+            elif len(self.eligible_affiliations_minus_sa) < 4:
+                raise UserWarning(f'eligible_affiliations_minus_sa is unusually short. Faculty, RegularStaff, '
+                                  f'Students, and TemporaryStaff are eligible for almost every service; are you sure?')
+            for i in self.eligible_affiliations_minus_sa:
+                if i not in ['Faculty', 'RegularStaff', 'Student', 'TemporaryStaff', 'Alumni', 'Retiree']:
+                    raise RuntimeError(f'eligible_affiliations_minus_sa contains an unfamiliar affiliation {i} (should '
+                                       f'be one of Faculty, RegularStaff, Student, TemporaryStaff, Alumni, Retiree')
+        else:
+            raise RuntimeError(f'eligible_affiliations_minus_sa cannot be empty: {self.eligible_affiliations_minus_sa}')
+        if self.eligible_sa_types:
+            for i in self.eligible_sa_types:
+                if i not in range(1, 4):
+                    raise RuntimeError(f'eligible_sa_types contains an invalid entry {i} (must be 1, 2, and/or 3)')
+        else:
+            raise UserWarning('eligible_sa_types is empty. Are you sure that no sponsored affiliates are eligible?')

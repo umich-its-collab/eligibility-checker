@@ -1,47 +1,40 @@
 import json
 import logging
 import re
-from typing import Union
 
-import ldap
-
-from mcommunity.mcommunity_base import ldap_connect
+from mcommunity.mcommunity_base import MCommunityBase
 
 logger = logging.getLogger(__name__)
 
 
-class MCommunityUser:
-    dn: str = ''
+class MCommunityUser(MCommunityBase):
     email: str = ''
     exists: bool = False
     entityid: str = ''  # a.k.a. UMID
-    name: str = ''  # Display name, a.k.a. preferred name
+    display_name: str = ''  # Display name, a.k.a. preferred name
     affiliations: list = []  # Populate via populate_affiliations
     highest_affiliation: str = ''  # Populate via populate_highest_affiliation
     service_entitlements: list = []  # Populate via populate_service_entitlements
 
-    raw_user: list = []
-    
-    mcommunity_app_cn: str = ''
-    mcommunity_secret: str = ''
+    search_base: str = 'ou=People,dc=umich,dc=edu'
     ldap_attributes: list = [
         '*', 'umichServiceEntitlement', 'entityid', 'umichDisplaySN', 'umichNameOfRecord', 'displayName'
     ]
 
     def __init__(self, uniqname: str, mcommunity_app_cn, mcommunity_secret):
-        self.dn: str = uniqname
-        self.email: str = self.dn + '@umich.edu'
-        self.mcommunity_app_cn = mcommunity_app_cn
-        self.mcommunity_secret = mcommunity_secret
+        super().__init__(mcommunity_app_cn, mcommunity_secret)
+        self.name: str = uniqname
+        self.query_object: str = f'uid={uniqname}'
+        self.email: str = self.name + '@umich.edu'
 
-        self.raw_user = self._populate_user_data(self.dn)
+        self.raw_result = self.search(self.search_base, self.query_object, self.ldap_attributes)
 
-        if not self.raw_user:
-            raise NameError(f'No user found in MCommunity for {self.dn}.')
+        if not self.raw_result:
+            raise NameError(f'No user found in MCommunity for {self.name}.')
         else:
             self.exists = True
             self.entityid = self._decode('entityid')
-            self.name = self._decode('displayName')
+            self.display_name = self._decode('displayName')
 
     ##################
     # Public Methods #
@@ -72,7 +65,7 @@ class MCommunityUser:
         if not self.highest_affiliation:
             self.populate_highest_affiliation()
         if self.highest_affiliation == 'SponsoredAffiliate':
-            if re.match('^um[0-9]+', self.dn):
+            if re.match('^um[0-9]+', self.name):
                 return 3
             elif re.match('^99', self.entityid):
                 return 2
@@ -83,7 +76,7 @@ class MCommunityUser:
 
     def populate_affiliations(self) -> None:
         """
-        Populate the affiliations attribute from raw_user if it has not already been done.
+        Populate the affiliations attribute from raw_result if it has not already been done.
         :return: None
         """
         if not self.affiliations:  # Don't overwrite if the list is not empty; it likely was already populated
@@ -116,47 +109,8 @@ class MCommunityUser:
 
     def populate_service_entitlements(self) -> None:
         """
-        Populate the service_entitlement entitlements attribute from raw_user if it has not already been done.
+        Populate the service_entitlement entitlements attribute from raw_result if it has not already been done.
         :return: None
         """
         if not self.service_entitlements:  # Don't overwrite if the list is not empty; it likely was already populated
             self.service_entitlements = self._decode('umichServiceEntitlement', return_str_if_single_item_list=False)
-
-    ###################
-    # Private Methods #
-    ###################
-    def _populate_user_data(self, dn) -> list:
-        """
-        Called during init to get the user's data from LDAP (MCommunity) so it can be stored on self.raw_user
-        :param dn: the user's uniqname
-        :return: list of user data
-        """
-        return ldap_connect(
-            self.mcommunity_app_cn,
-            self.mcommunity_secret
-        ).search_st('ou=People,dc=umich,dc=edu',
-                    ldap.SCOPE_SUBTREE,
-                    f'uid={dn}',
-                    self.ldap_attributes
-                    )
-
-    def _decode(self, which_key, return_str_if_single_item_list=True) -> Union[str, list]:
-        """
-        Decode a bytes object or a list of bytes objects to UTF-8
-        :param which_key: a string representing the key to retrieve the value of in the user data
-        :param return_str_if_single_item_list: if True and the decoded item is a single-item list, return the item
-        instead of the list; if False, return the list with the single item; defaults to True;
-        :return: the decoded item, either a string or a list
-        """
-        try:
-            value = self.raw_user[0][1].get(which_key, '')
-        except IndexError:  # This will happen if the person doesn't exist or is not affiliated
-            return ''
-        if type(value) == bytes:  # Never seen this in LDAP, it is always a list even if just one item, but just in case
-            return value.decode('UTF-8')
-        elif type(value) == list:
-            decoded = [i.decode('UTF-8') for i in value]
-            if return_str_if_single_item_list and len(decoded) == 1:
-                return decoded[0]
-            else:
-                return decoded

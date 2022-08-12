@@ -29,19 +29,24 @@ class EligibilityCheckerTestCase(unittest.TestCase):
     checker_affils = None
 
     @classmethod
-    @patch('mcommunity.mcommunity_group.MCommunityGroup._populate_group_data')
+    @patch('mcommunity.mcommunity_base.MCommunityBase.search')
     def setUpClass(cls, magic_mock) -> None:
-        magic_mock.side_effect = mocks.mcomm_group_side_effect
+        magic_mock.side_effect = mocks.mcomm_side_effect
         cls.checker_use = EligibilityCheckerUSETestClass(mocks.test_app, mocks.test_secret)
         cls.checker_affils = EligibilityCheckerAffiliationsTestClass(mocks.test_app, mocks.test_secret)
 
     def setUp(self) -> None:
-        self.patcher = patch('mcommunity.mcommunity_user.MCommunityUser._populate_user_data')
+        self.patcher = patch('mcommunity.mcommunity_base.MCommunityBase.search')
         self.mock = self.patcher.start()
-        self.mock.side_effect = mocks.mcomm_user_side_effect
+        self.mock.side_effect = mocks.mcomm_side_effect
 
     def test_init_populates_override_group_members(self):
         self.assertEqual(['nemcardf', 'nemcardrs', 'nemcarda', 'nemcards'], self.checker_use.override_group_members)
+
+    @patch('eligibility_checker.EligibilityChecker._validate')
+    def test_init_validates_attributes(self, magic_mock):
+        EligibilityCheckerUSETestClass(mocks.test_app, mocks.test_secret)
+        self.assertTrue(magic_mock.called)
 
     def test_check_affiliation_eligibility_sa_eligible(self):
         user = MCommunityUser('nemcardsa1', self.checker_use.mcommunity_app_cn, self.checker_use.mcommunity_secret)
@@ -122,6 +127,51 @@ class EligibilityCheckerTestCase(unittest.TestCase):
 
     def test_deprovision_account_error(self):
         self.assertEqual(False, self.checker_use.deprovision_account_if_ineligible('nemcardferr'))
+
+    def test_validate_errors_if_no_admins(self):
+        self.checker_use.override_groups = []
+        with self.assertRaises(RuntimeError):
+            self.checker_use._validate()
+        self.checker_use.override_groups = ['collab-iam-admins']
+
+    def test_validate_errors_if_sa_in_affils(self):
+        self.checker_use.eligible_affiliations_minus_sa.append('SponsoredAffiliate')
+        with self.assertRaises(RuntimeError):
+            self.checker_use._validate()
+        self.checker_use.eligible_affiliations_minus_sa = ['Faculty', 'RegularStaff', 'Student', 'TemporaryStaff']
+
+    def test_validate_warns_if_affils_too_short(self):
+        self.checker_use.eligible_affiliations_minus_sa = self.checker_use.eligible_affiliations_minus_sa[:3]
+        with self.assertRaises(UserWarning):
+            self.checker_use._validate()
+        self.checker_use.eligible_affiliations_minus_sa = ['Faculty', 'RegularStaff', 'Student', 'TemporaryStaff']
+
+    def test_validate_errors_if_invalid_affil(self):
+        self.checker_use.eligible_affiliations_minus_sa.append('TestAffil')
+        with self.assertRaises(RuntimeError):
+            self.checker_use._validate()
+        self.checker_use.eligible_affiliations_minus_sa = ['Faculty', 'RegularStaff', 'Student', 'TemporaryStaff']
+
+    def test_validate_errors_if_affils_empty(self):
+        self.checker_use.eligible_affiliations_minus_sa = []
+        with self.assertRaises(RuntimeError):
+            self.checker_use._validate()
+        self.checker_use.eligible_affiliations_minus_sa = ['Faculty', 'RegularStaff', 'Student', 'TemporaryStaff']
+
+    def test_validate_errors_if_invalid_sa_type(self):
+        self.checker_use.eligible_sa_types.append(5)
+        with self.assertRaises(RuntimeError):
+            self.checker_use._validate()
+        self.checker_use.eligible_sa_types = [1, 'blah']
+        with self.assertRaises(RuntimeError):
+            self.checker_use._validate()
+        self.checker_use.eligible_sa_types = [1]
+
+    def test_validate_warn_if_sa_types_empty(self):
+        self.checker_use.eligible_sa_types = []
+        with self.assertRaises(UserWarning):
+            self.checker_use._validate()
+        self.checker_use.eligible_sa_types = [1]
 
     def tearDown(self) -> None:
         self.patcher.stop()

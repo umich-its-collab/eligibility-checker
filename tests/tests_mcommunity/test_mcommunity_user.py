@@ -11,28 +11,13 @@ test_user = 'nemcardf'
 class MCommunityUserTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.patcher = patch('mcommunity.mcommunity_user.MCommunityUser._populate_user_data')
+        self.patcher = patch('mcommunity.mcommunity_user.MCommunityUser.search')
         self.mock = self.patcher.start()
-        self.mock.side_effect = mocks.mcomm_user_side_effect
+        self.mock.side_effect = mocks.mcomm_side_effect
         self.user = MCommunityUser(test_user, mocks.test_app, mocks.test_secret)
 
-    def test_decode_str(self):
-        self.assertEqual('test_decoding_str', self.user._decode('test_str'))
-
-    def test_decode_single_item_list_as_list(self):
-        self.assertEqual(['Natalie Emcard'], self.user._decode('cn', return_str_if_single_item_list=False))
-
-    def test_decode_single_item_list_as_str(self):
-        self.assertEqual('Natalie Emcard', self.user._decode('cn'))
-
-    def test_decode_list(self):
-        self.assertEqual([
-            'FacultyAA', 'RegularStaffDBRN', 'StudentFLNT', 'TemporaryStaffFLNT', 'SponsoredAffiliateAA',
-            'Retiree', 'AlumniAA'
-        ], self.user._decode('umichInstRoles', return_str_if_single_item_list=False))
-
-    def test_init_sets_dn(self):
-        self.assertEqual(test_user, self.user.dn)
+    def test_init_sets_name(self):
+        self.assertEqual(test_user, self.user.name)
 
     def test_init_sets_email(self):
         self.assertEqual(f'{test_user}@umich.edu', self.user.email)
@@ -48,14 +33,14 @@ class MCommunityUserTestCase(unittest.TestCase):
     def test_init_sets_entityid(self):
         self.assertEqual('00000000', self.user.entityid)
 
-    def test_init_sets_name(self):
-        self.assertEqual('Natalie Emcard', self.user.name)
+    def test_init_sets_display_name(self):
+        self.assertEqual('Natalie Emcard', self.user.display_name)
 
-    def test_init_sets_raw_user(self):
-        self.assertEqual(mocks.faculty_mock, self.user.raw_user)
-        self.assertEqual(list, type(self.user.raw_user))
-        self.assertEqual(1, len(self.user.raw_user))  # LDAP should always return a 1-item list for a real person
-        self.assertEqual(2, len(self.user.raw_user[0]))  # LDAP should always return a 2-item tuple for a real person
+    def test_init_sets_raw_result(self):
+        self.assertEqual(mocks.faculty_mock, self.user.raw_result)
+        self.assertEqual(list, type(self.user.raw_result))
+        self.assertEqual(1, len(self.user.raw_result))  # LDAP should always return a 1-item list for a real person
+        self.assertEqual(2, len(self.user.raw_result[0]))  # LDAP should always return a 2-item tuple for a real person
 
     def test_check_service_entitlements_eligible(self):
         self.assertEqual(True, self.user.check_service_entitlement('enterprise'))

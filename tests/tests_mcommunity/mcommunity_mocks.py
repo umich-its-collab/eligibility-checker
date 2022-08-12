@@ -9,38 +9,38 @@ def change_uniqname_on_mock(mock: list, new_uniqname: str):
     return copy
 
 
-def mcomm_user_side_effect(*args):
-    user = args[0]
-    if user == 'nemcardf':
-        return faculty_mock
-    elif user == 'nemcardrs':
-        return regstaff_mock
-    elif user == 'nemcards':
-        return student_mock
-    elif user == 'nemcardts':
-        return tempstaff_mock
-    elif user == 'nemcardsa1':
-        return t1sponsored_mock
-    elif user == 'nemcardsa2':
-        return t2sponsored_mock
-    elif user == 'um999999':
-        return t3sponsored_mock
-    elif user == 'nemcardr':
-        return retiree_mock
-    elif user == 'nemcarda':
-        return alumni_mock
-    elif user == 'nemcardferr':
-        return faculty_missing_use_mock
-    elif user == 'nemcardaerr':
-        return alumni_with_use_mock
-    else:
-        return []
-
-
-def mcomm_group_side_effect(*args):
-    group = args[0]
-    if group in ['test-group', 'collab-iam-admins']:
-        return group_mock
+def mcomm_side_effect(*args):
+    query = args[1].split('=')[1]
+    if args[0] == 'ou=People,dc=umich,dc=edu':
+        if query == 'nemcardf':
+            return faculty_mock
+        elif query == 'nemcardrs':
+            return regstaff_mock
+        elif query == 'nemcards':
+            return student_mock
+        elif query == 'nemcardts':
+            return tempstaff_mock
+        elif query == 'nemcardsa1':
+            return t1sponsored_mock
+        elif query == 'nemcardsa2':
+            return t2sponsored_mock
+        elif query == 'um999999':
+            return t3sponsored_mock
+        elif query == 'nemcardr':
+            return retiree_mock
+        elif query == 'nemcarda':
+            return alumni_mock
+        elif query == 'nemcardferr':
+            return faculty_missing_use_mock
+        elif query == 'nemcardaerr':
+            return alumni_with_use_mock
+        else:
+            return []
+    elif args[0] == 'ou=User Groups,ou=Groups,dc=umich,dc=edu':
+        if query in ['test-group', 'collab-iam-admins']:
+            return group_mock
+        else:
+            return []
     else:
         return []
 
