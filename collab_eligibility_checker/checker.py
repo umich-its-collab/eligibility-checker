@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class EligibilityChecker(ABC):
     service_friendly: str  # Name of the service in Capital Case (ex: Google, Microsoft Teams, Slack)
     service_entitlement: Union[str, None] = 'enterprise'  # umichServiceEntitlement (uSE) to reference
-    # service_entitlement should be None if this service_entitlement doesn't rely on uSE and only on affiliations
+    # service_entitlement should be None if this service doesn't rely on uSE and only on affiliations
 
     override_groups: list = ['collab-iam-admins']
     override_group_members: list = []
@@ -129,7 +129,7 @@ class EligibilityChecker(ABC):
     @abstractmethod
     def _deprovision(self, uniqname) -> bool:
         """
-        Deprovision the account in the service_entitlement for this user.
+        Deprovision the account in the service for this user.
         :param uniqname: the U-M username of the user to check for eligibility (i.e. before @umich.edu in their email)
         :return: bool for whether deprovision was successful
         """
