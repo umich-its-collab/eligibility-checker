@@ -34,6 +34,8 @@ def mcomm_side_effect(*args):
             return faculty_missing_use_mock
         elif query == 'nemcardaerr':
             return alumni_with_use_mock
+        elif query == 'nemcardfnouse':
+            return faculty_empty_use_mock
         else:
             return []
     elif args[0] == 'ou=User Groups,ou=Groups,dc=umich,dc=edu':
@@ -113,6 +115,9 @@ faculty_missing_use_mock[0][1]['umichServiceEntitlement'] = ineligible_service_e
 
 alumni_with_use_mock = change_uniqname_on_mock(alumni_mock, 'nemcardaerr')
 alumni_with_use_mock[0][1]['umichServiceEntitlement'] = faculty_mock[0][1]['umichServiceEntitlement'].copy()
+
+faculty_empty_use_mock = change_uniqname_on_mock(faculty_mock, 'nemcardfnouse')
+faculty_empty_use_mock[0][1].pop('umichServiceEntitlement')
 
 group_mock = [
     ('cn=test-group,ou=User Groups,ou=Groups,dc=umich,dc=edu', {

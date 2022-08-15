@@ -120,6 +120,27 @@ class MCommunityUserTestCase(unittest.TestCase):
             user.populate_highest_affiliation()
             self.assertEqual('NA', user.highest_affiliation)
 
+    def test_populate_service_entitlements(self):
+        self.assertEqual([], self.user.service_entitlements)  # Before populating, there should not be any
+        self.user.populate_service_entitlements()
+        use = [
+            '{"system":"papercut","changeDate":"20141201050814Z","foreignKey":"","eligibility":"yesDelay","status":"role","action":""}',
+            '{"system":"tdx","changeDate":"20200520160600Z","foreignKey":"5fd61fa7-035f-ea11-a81b-000d3a8e391e","eligibility":"yes","status":"active","action":""}',
+            '{"system":"box","changeDate":"20200815082046Z","foreignKey":"229315957","eligibility":"yesDelay","status":"active","action":""}',
+            '{"system":"canvas","changeDate":"20200821155033Z","foreignKey":"327664","eligibility":"yesImmed","status":"active","action":""}',
+            '{"system":"dropbox","changeDate":"20200929151240Z","foreignKey":"dbmid:x","eligibility":"yesDelay","status":"active","action":""}',
+            '{"system":"linkedinlearning","changeDate":"20201017144315Z","foreignKey":"","eligibility":"yesDelay","status":"","action":""}',
+            '{"system":"adobecc","changeDate":"20201017144315Z","foreignKey":"","eligibility":"cc","status":"","action":""}',
+            '{"system":"enterprise","changeDate":"20210721193419Z","eligibility":"yes","status":"active","action":""}'
+        ]
+        self.assertEqual(use, self.user.service_entitlements)
+
+    def test_populate_service_entitlements_warn_if_empty(self):
+        user = MCommunityUser('nemcardfnouse', mocks.test_app, mocks.test_secret)
+        self.assertEqual([], user.service_entitlements)  # Before populating, there should not be any
+        with self.assertRaises(UserWarning):
+            user.populate_service_entitlements()
+
     def tearDown(self) -> None:
         self.patcher.stop()
 

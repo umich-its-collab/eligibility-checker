@@ -114,3 +114,6 @@ class MCommunityUser(MCommunityBase):
         """
         if not self.service_entitlements:  # Don't overwrite if the list is not empty; it likely was already populated
             self.service_entitlements = self._decode('umichServiceEntitlement', return_str_if_single_item_list=False)
+            if not self.service_entitlements:
+                raise UserWarning('LDAP did not return any uSE for this user. Check to make sure the app you are '
+                                  'using has scopes for uSE.')
