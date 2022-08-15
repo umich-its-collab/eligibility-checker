@@ -2,7 +2,7 @@ import json
 import logging
 import re
 
-from mcommunity.mcommunity_base import MCommunityBase
+from collab_eligibility_checker.mcommunity.mcommunity_base import MCommunityBase
 
 logger = logging.getLogger(__name__)
 

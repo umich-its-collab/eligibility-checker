@@ -2,8 +2,8 @@ import logging
 
 import ldap
 
-from mcommunity.mcommunity_base import MCommunityBase
-from mcommunity.mcommunity_user import MCommunityUser
+from collab_eligibility_checker.mcommunity.mcommunity_base import MCommunityBase
+from collab_eligibility_checker.mcommunity.mcommunity_user import MCommunityUser
 
 logger = logging.getLogger(__name__)
 

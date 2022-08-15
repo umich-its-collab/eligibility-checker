@@ -4,14 +4,14 @@ from unittest.mock import patch
 
 import ldap
 
-from mcommunity.mcommunity_base import MCommunityBase
+from collab_eligibility_checker.mcommunity.mcommunity_base import MCommunityBase
 from tests.tests_mcommunity import mcommunity_mocks as mocks
 
 
 class MCommunityBaseTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.patcher = patch('mcommunity.mcommunity_base.MCommunityBase.search')
+        self.patcher = patch('collab_eligibility_checker.mcommunity.mcommunity_base.MCommunityBase.search')
         self.mock = self.patcher.start()
         self.mock.side_effect = mocks.mcomm_side_effect
         self.base = MCommunityBase(mocks.test_app, mocks.test_secret)
@@ -24,7 +24,7 @@ class MCommunityBaseTestCase(unittest.TestCase):
         with self.assertRaises(ldap.INVALID_CREDENTIALS):
             self.base.connect()
 
-    @patch('mcommunity.mcommunity_base.MCommunityBase.connect')
+    @patch('collab_eligibility_checker.mcommunity.mcommunity_base.MCommunityBase.connect')
     def test_search_retry(self, magic_mock):
         self.patcher.stop()  # Suppress the search patcher on this test only to test the retry
         magic_mock.side_effect = ldap.UNAVAILABLE()

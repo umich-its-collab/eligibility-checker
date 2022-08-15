@@ -2,7 +2,7 @@ import logging
 import unittest
 from unittest.mock import patch
 
-from mcommunity.mcommunity_user import MCommunityUser
+from collab_eligibility_checker.mcommunity.mcommunity_user import MCommunityUser
 from tests.tests_mcommunity import mcommunity_mocks as mocks
 
 test_user = 'nemcardf'
@@ -11,7 +11,7 @@ test_user = 'nemcardf'
 class MCommunityUserTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.patcher = patch('mcommunity.mcommunity_user.MCommunityUser.search')
+        self.patcher = patch('collab_eligibility_checker.mcommunity.mcommunity_base.MCommunityBase.search')
         self.mock = self.patcher.start()
         self.mock.side_effect = mocks.mcomm_side_effect
         self.user = MCommunityUser(test_user, mocks.test_app, mocks.test_secret)

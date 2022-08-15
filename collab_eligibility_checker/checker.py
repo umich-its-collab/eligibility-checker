@@ -2,8 +2,8 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Union
 
-from mcommunity.mcommunity_user import MCommunityUser
-from mcommunity.mcommunity_group import MCommunityGroup
+from collab_eligibility_checker.mcommunity.mcommunity_user import MCommunityUser
+from collab_eligibility_checker.mcommunity.mcommunity_group import MCommunityGroup
 
 logger = logging.getLogger(__name__)
 

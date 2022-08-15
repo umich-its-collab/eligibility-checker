@@ -2,8 +2,8 @@ import logging
 import unittest
 from unittest.mock import patch
 
-from mcommunity.mcommunity_group import MCommunityGroup
-from mcommunity.mcommunity_user import MCommunityUser
+from collab_eligibility_checker.mcommunity.mcommunity_group import MCommunityGroup
+from collab_eligibility_checker.mcommunity.mcommunity_user import MCommunityUser
 from tests.tests_mcommunity import mcommunity_mocks as mocks
 
 test_group = 'test-group'
@@ -13,7 +13,7 @@ class MCommunityGroupTestCase(unittest.TestCase):
     group = None
 
     @classmethod
-    @patch('mcommunity.mcommunity_base.MCommunityBase.search')
+    @patch('collab_eligibility_checker.mcommunity.mcommunity_base.MCommunityBase.search')
     def setUpClass(cls, magic_mock) -> None:
         magic_mock.side_effect = mocks.mcomm_side_effect
         cls.group = MCommunityGroup(test_group, mocks.test_app, mocks.test_secret)
@@ -30,7 +30,7 @@ class MCommunityGroupTestCase(unittest.TestCase):
     def test_init_sets_members(self):
         self.assertEqual(['nemcardf', 'nemcardrs', 'nemcarda', 'nemcards'], self.group.members)
 
-    @patch('mcommunity.mcommunity_base.MCommunityBase.search')
+    @patch('collab_eligibility_checker.mcommunity.mcommunity_base.MCommunityBase.search')
     def test_populate_members_mcomm_users(self, magic_mock):
         magic_mock.side_effect = mocks.mcomm_side_effect
         self.assertEqual([], self.group.members_mcomm_users)  # Before populating, there should not be any
@@ -45,7 +45,7 @@ class MCommunityGroupTestCase(unittest.TestCase):
     def test_group_exists(self):
         self.assertEqual(True, self.group.exists)
 
-    @patch('mcommunity.mcommunity_base.MCommunityBase.search')
+    @patch('collab_eligibility_checker.mcommunity.mcommunity_base.MCommunityBase.search')
     def test_group_not_exists(self, magic_mock):
         magic_mock.side_effect = mocks.mcomm_side_effect
         with self.assertRaises(NameError):
