@@ -2,9 +2,9 @@ import logging
 import unittest
 from unittest.mock import patch
 
-from collab_eligibility_checker.checker import EligibilityChecker
-from tests.tests_mcommunity import mcommunity_mocks as mocks
-from collab_eligibility_checker.mcommunity.mcommunity_user import MCommunityUser
+from eligibility_checker.checker import EligibilityChecker
+from mcommunity.mcommunity_user import MCommunityUser
+import mcommunity.mcommunity_mocks as mocks
 
 test_user = 'nemcardf'
 
@@ -23,21 +23,21 @@ class EligibilityCheckerTestCase(unittest.TestCase):
     checker_affils = None
 
     @classmethod
-    @patch('collab_eligibility_checker.mcommunity.mcommunity_base.MCommunityBase.search')
+    @patch('mcommunity.mcommunity_base.MCommunityBase.search')
     def setUpClass(cls, magic_mock) -> None:
         magic_mock.side_effect = mocks.mcomm_side_effect
         cls.checker_use = EligibilityCheckerUSETestClass(mocks.test_app, mocks.test_secret)
         cls.checker_affils = EligibilityCheckerAffiliationsTestClass(mocks.test_app, mocks.test_secret)
 
     def setUp(self) -> None:
-        self.patcher = patch('collab_eligibility_checker.mcommunity.mcommunity_base.MCommunityBase.search')
+        self.patcher = patch('mcommunity.mcommunity_base.MCommunityBase.search')
         self.mock = self.patcher.start()
         self.mock.side_effect = mocks.mcomm_side_effect
 
     def test_init_populates_override_group_members(self):
         self.assertEqual(['nemcardf', 'nemcardrs', 'nemcarda'], self.checker_use.override_group_members)
 
-    @patch('collab_eligibility_checker.checker.EligibilityChecker._validate')
+    @patch('eligibility_checker.checker.EligibilityChecker._validate')
     def test_init_validates_attributes(self, magic_mock):
         EligibilityCheckerUSETestClass(mocks.test_app, mocks.test_secret)
         self.assertTrue(magic_mock.called)

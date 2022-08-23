@@ -7,5 +7,8 @@ setup(
       url='https://github.com/umich-its-collab/eligibility-checker',
       author='University of Michigan ITS Collaboration Services',
       author_email='4help@umich.edu',
-      packages=['collab_eligibility_checker', 'collab_eligibility_checker.mcommunity'],
+      packages=['eligibility_checker'],
+      install_requires=[
+            'v0.1@git+https://github.com/umich-its-collab/mcommunity-tools.git#egg=mcommunity'
+      ]
 )
