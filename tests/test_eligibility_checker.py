@@ -12,16 +12,10 @@ test_user = 'nemcardf'
 class EligibilityCheckerUSETestClass(EligibilityChecker):
     service_friendly = 'Test Service with uSE'
 
-    def _deprovision(self, uniqname) -> bool:
-        return True
-
 
 class EligibilityCheckerAffiliationsTestClass(EligibilityChecker):
     service_friendly = 'Test Service with no uSE'
     service_entitlement = None
-
-    def _deprovision(self, uniqname) -> bool:
-        return True
 
 
 class EligibilityCheckerTestCase(unittest.TestCase):
@@ -178,17 +172,6 @@ class EligibilityCheckerTestCase(unittest.TestCase):
         self.assertEqual('No user found in MCommunity for fake', response.reason)
         self.assertIsInstance(response.user, MCommunityUser)
         self.assertIsInstance(response.errors, NameError)
-
-    def test_deprovision_account_eligible(self):
-        self.assertEqual(False, self.checker_use.deprovision_account_if_ineligible('nemcardf'))
-
-    def test_deprovision_account_ineligible(self):
-        with patch.object(self.checker_use, '_deprovision', return_value=True) as magic_mock:
-            self.checker_use.deprovision_account_if_ineligible('nemcardr')
-            self.assertTrue(magic_mock.called)
-
-    def test_deprovision_account_error(self):
-        self.assertEqual(False, self.checker_use.deprovision_account_if_ineligible('nemcardferr'))
 
     def test_validate_errors_if_no_admins(self):
         self.checker_use.override_groups = []

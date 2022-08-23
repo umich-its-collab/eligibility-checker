@@ -88,22 +88,6 @@ class EligibilityChecker(ABC):
             else:  # This service does not rely on uSE for eligibility
                 return self._check_affiliation_eligibility(user)  # No further validation necessary or possible
 
-    def deprovision_account_if_ineligible(self, uniqname) -> bool:
-        """
-        Check eligibility and deprovision account if ineligible.
-        :param uniqname: the U-M username of the user to check for eligibility (i.e. before @umich.edu in their email)
-        :return: True if deprovisioned, False if not
-        """
-        try:
-            eligible = self.check_eligibility(uniqname)
-        except RuntimeError as e:
-            logger.exception(f'LDAP data error for {uniqname}: ', exc_info=e)
-            return False  # We won't deprovision them if they have a data issue
-        if eligible:
-            return False
-        else:
-            self._deprovision(uniqname)
-
     ###################
     # Private Methods #
     ###################
@@ -130,15 +114,6 @@ class EligibilityChecker(ABC):
             eligible = False
             reason = f'{user.highest_affiliation} are not eligible for {self.service_friendly}'
         return CheckEligibilityResponse(eligible=eligible, reason=reason, user=user, errors=None)
-
-    @abstractmethod
-    def _deprovision(self, uniqname) -> bool:
-        """
-        Deprovision the account in the service for this user.
-        :param uniqname: the U-M username of the user to check for eligibility (i.e. before @umich.edu in their email)
-        :return: bool for whether deprovision was successful
-        """
-        pass
 
     def _validate(self) -> None:
         """
