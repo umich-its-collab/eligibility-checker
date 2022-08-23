@@ -30,15 +30,16 @@ uniqname to the `check_eligibility` method.
 
 # Examples
 Below is an example of what you might enter into the file described in step 3 above.
+
 ```python
-from collab_eligibility_checker.checker import EligibilityChecker
+from eligibility_checker.checker import EligibilityChecker
 
 
 class ZoomEligibilityChecker(EligibilityChecker):
-    service_friendly = 'Zoom'
-    service_entitlement = 'enterprise'  # This is default, but just setting to be very explicit
+   service_friendly = 'Zoom'
+   service_entitlement = 'enterprise'  # This is default, but just setting to be very explicit
 
-    override_groups = ['collab-iam-admins', 'zoom-iam-primary']
+   override_groups = ['collab-iam-admins', 'zoom-iam-primary']
 ```
 
 Below is an example of how you might instantiate and use `ZoomEligibilityChecker`
