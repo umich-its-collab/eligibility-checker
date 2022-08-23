@@ -23,9 +23,9 @@ class MCommunityUserTestCase(unittest.TestCase):
         self.assertEqual(f'{test_user}@umich.edu', self.user.email)
 
     def test_user_not_exists(self):
-        with self.assertRaises(NameError):
-            user = MCommunityUser('fake', mocks.test_app, mocks.test_secret)
-            self.assertEqual(False, user.exists)
+        user = MCommunityUser('fake', mocks.test_app, mocks.test_secret)
+        self.assertIsInstance(user.errors, NameError)
+        self.assertEqual(False, user.exists)
 
     def test_user_exists(self):
         self.assertEqual(True, self.user.exists)
@@ -114,11 +114,11 @@ class MCommunityUserTestCase(unittest.TestCase):
         self.assertEqual('Alumni', user.highest_affiliation)
 
     def test_populate_highest_affiliation_na(self):
-        with self.assertRaises(NameError):
-            user = MCommunityUser('fake', mocks.test_app, mocks.test_secret)
-            self.assertEqual('', user.highest_affiliation)
-            user.populate_highest_affiliation()
-            self.assertEqual('NA', user.highest_affiliation)
+        user = MCommunityUser('fake', mocks.test_app, mocks.test_secret)
+        self.assertIsInstance(user.errors, NameError)
+        self.assertEqual('', user.highest_affiliation)
+        user.populate_highest_affiliation()
+        self.assertEqual('NA', user.highest_affiliation)
 
     def test_populate_service_entitlements(self):
         self.assertEqual([], self.user.service_entitlements)  # Before populating, there should not be any

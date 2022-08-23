@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+from typing import Optional
 
 from collab_eligibility_checker.mcommunity.mcommunity_base import MCommunityBase
 
@@ -15,6 +16,7 @@ class MCommunityUser(MCommunityBase):
     affiliations: list = []  # Populate via populate_affiliations
     highest_affiliation: str = ''  # Populate via populate_highest_affiliation
     service_entitlements: list = []  # Populate via populate_service_entitlements
+    errors: Optional[BaseException] = None
 
     search_base: str = 'ou=People,dc=umich,dc=edu'
     ldap_attributes: list = [
@@ -30,7 +32,7 @@ class MCommunityUser(MCommunityBase):
         self.raw_result = self.search(self.search_base, self.query_object, self.ldap_attributes)
 
         if not self.raw_result:
-            raise NameError(f'No user found in MCommunity for {self.name}.')
+            self.errors = NameError(f'No user found in MCommunity for {self.name}')
         else:
             self.exists = True
             self.entityid = self._decode('entityid')

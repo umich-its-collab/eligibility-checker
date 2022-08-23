@@ -41,7 +41,7 @@ class EligibilityCheckerTestCase(unittest.TestCase):
         self.mock.side_effect = mocks.mcomm_side_effect
 
     def test_init_populates_override_group_members(self):
-        self.assertEqual(['nemcardf', 'nemcardrs', 'nemcarda', 'nemcards'], self.checker_use.override_group_members)
+        self.assertEqual(['nemcardf', 'nemcardrs', 'nemcarda'], self.checker_use.override_group_members)
 
     @patch('collab_eligibility_checker.checker.EligibilityChecker._validate')
     def test_init_validates_attributes(self, magic_mock):
@@ -50,72 +50,134 @@ class EligibilityCheckerTestCase(unittest.TestCase):
 
     def test_check_affiliation_eligibility_sa_eligible(self):
         user = MCommunityUser('nemcardsa1', self.checker_use.mcommunity_app_cn, self.checker_use.mcommunity_secret)
-        self.assertEqual(True, self.checker_use._check_affiliation_eligibility(user))
+        response = self.checker_use._check_affiliation_eligibility(user)
+        self.assertEqual(True, response.eligible)
+        self.assertEqual('Sponsored affiliates t1 are eligible for Test Service with uSE', response.reason)
+        self.assertIsInstance(response.user, MCommunityUser)
+        self.assertIsNone(response.errors)
 
     def test_check_affiliation_eligibility_sa_ineligible(self):
         user = MCommunityUser('um999999', self.checker_use.mcommunity_app_cn, self.checker_use.mcommunity_secret)
-        self.assertEqual(False, self.checker_use._check_affiliation_eligibility(user))
+        response = self.checker_use._check_affiliation_eligibility(user)
+        self.assertEqual(False, response.eligible)
+        self.assertEqual('Sponsored affiliates t3 are not eligible for Test Service with uSE', response.reason)
+        self.assertIsInstance(response.user, MCommunityUser)
+        self.assertIsNone(response.errors)
 
     def test_check_affiliation_eligibility_sa_ineligible_override_eligible_types(self):
         user = MCommunityUser('nemcardsa2', self.checker_use.mcommunity_app_cn, self.checker_use.mcommunity_secret)
-        self.assertEqual(False, self.checker_use._check_affiliation_eligibility(user))  # Control
+        self.assertEqual(False, self.checker_use._check_affiliation_eligibility(user).eligible)  # Control
         self.checker_use.eligible_sa_types.append(2)  # Make type 2s eligible
-        self.assertEqual(True, self.checker_use._check_affiliation_eligibility(user))
+        self.assertEqual(True, self.checker_use._check_affiliation_eligibility(user).eligible)
         self.checker_use.eligible_sa_types = [1]  # Reset
 
     def test_check_affiliation_eligibility_faculty_eligible(self):
         user = MCommunityUser('nemcardf', self.checker_use.mcommunity_app_cn, self.checker_use.mcommunity_secret)
-        self.assertEqual(True, self.checker_use._check_affiliation_eligibility(user))
+        response = self.checker_use._check_affiliation_eligibility(user)
+        self.assertEqual(True, response.eligible)
+        self.assertEqual('Faculty are eligible for Test Service with uSE', response.reason)
+        self.assertIsInstance(response.user, MCommunityUser)
+        self.assertIsNone(response.errors)
 
     def test_check_affiliation_eligibility_retiree_ineligible(self):
         user = MCommunityUser('nemcardr', self.checker_use.mcommunity_app_cn, self.checker_use.mcommunity_secret)
-        self.assertEqual(False, self.checker_use._check_affiliation_eligibility(user))
+        response = self.checker_use._check_affiliation_eligibility(user)
+        self.assertEqual(False, response.eligible)
+        self.assertEqual('Retiree are not eligible for Test Service with uSE', response.reason)
+        self.assertIsInstance(response.user, MCommunityUser)
+        self.assertIsNone(response.errors)
 
     def test_check_affiliation_eligibility_student_override_eligible_types(self):
         user = MCommunityUser('nemcards', self.checker_use.mcommunity_app_cn, self.checker_use.mcommunity_secret)
-        self.assertEqual(True, self.checker_use._check_affiliation_eligibility(user))  # Control
+        self.assertEqual(True, self.checker_use._check_affiliation_eligibility(user).eligible)  # Control
         self.checker_use.eligible_affiliations_minus_sa = [
             'Faculty', 'RegularStaff', 'TemporaryStaff'
         ]  # Make students ineligible
-        self.assertEqual(False, self.checker_use._check_affiliation_eligibility(user))
+        self.assertEqual(False, self.checker_use._check_affiliation_eligibility(user).eligible)
         self.checker_use.eligible_affiliations_minus_sa = ['Faculty', 'RegularStaff', 'Student', 'TemporaryStaff']
 
     def test_check_eligibility_override(self):
-        self.assertEqual(True, self.checker_use.check_eligibility('nemcarda', validate_affiliation=False))
+        response = self.checker_use.check_eligibility('nemcarda', validate_affiliation=False)
+        self.assertEqual(True, response.eligible)
+        self.assertEqual('Override group member', response.reason)
+        self.assertIsInstance(response.user, MCommunityUser)
+        self.assertIsNone(response.errors)
 
     def test_use_check_eligibility_no_validation_not_eligible(self):
-        self.assertEqual(False, self.checker_use.check_eligibility('nemcardr', validate_affiliation=False))
+        response = self.checker_use.check_eligibility('nemcardr', validate_affiliation=False)
+        self.assertEqual(False, response.eligible)
+        self.assertEqual('enterprise entitlement is False', response.reason)
+        self.assertIsInstance(response.user, MCommunityUser)
+        self.assertIsNone(response.errors)
 
     def test_use_check_eligibility_with_validation_not_eligible(self):
-        self.assertEqual(False, self.checker_use.check_eligibility('nemcardr'))
+        response = self.checker_use.check_eligibility('nemcardr')
+        self.assertEqual(False, response.eligible)
+        self.assertEqual('enterprise entitlement is False', response.reason)
+        self.assertIsInstance(response.user, MCommunityUser)
+        self.assertIsNone(response.errors)
 
     def test_use_check_eligibility_no_validation_eligible(self):
-        self.assertEqual(True, self.checker_use.check_eligibility('nemcardrs', validate_affiliation=False))
+        response = self.checker_use.check_eligibility('nemcards', validate_affiliation=False)
+        self.assertEqual(True, response.eligible)
+        self.assertEqual('enterprise entitlement is True', response.reason)
+        self.assertIsInstance(response.user, MCommunityUser)
+        self.assertIsNone(response.errors)
 
     def test_use_check_eligibility_with_validation_eligible(self):
-        self.assertEqual(True, self.checker_use.check_eligibility('nemcardts'))
+        response = self.checker_use.check_eligibility('nemcardts')
+        self.assertEqual(True, response.eligible)
+        self.assertEqual('enterprise entitlement is True', response.reason)
+        self.assertIsInstance(response.user, MCommunityUser)
+        self.assertIsNone(response.errors)
 
     def test_use_check_eligibility_with_validation_error(self):
-        with self.assertRaises(RuntimeError):
-            self.checker_use.check_eligibility('nemcardferr')  # No enterprise uSE, but faculty is highest affiliation
+        # No enterprise uSE, but faculty is highest affiliation
+        response = self.checker_use.check_eligibility('nemcardferr')
+        self.assertEqual(True, response.eligible)
+        self.assertEqual(
+            'Highest affiliation Faculty shows nemcardferr should have a valid enterprise entitlement but they do not',
+            response.reason)
+        self.assertIsInstance(response.user, MCommunityUser)
+        self.assertIsInstance(response.errors, RuntimeError)
 
     def test_use_check_eligibility_with_validation_alum_hanging_use(self):
         # Alumni are ineligible but still has uSE to simulate alumni within 30 days post-grad--should not error
-        self.assertEqual(True, self.checker_use.check_eligibility('nemcardaerr'))
+        response = self.checker_use.check_eligibility('nemcardaerr')
+        self.assertEqual(True, response.eligible)
+        self.assertEqual('enterprise entitlement is True', response.reason)
+        self.assertIsInstance(response.user, MCommunityUser)
+        self.assertIsNone(response.errors)
 
     def test_use_check_eligibility_na(self):
         # check_eligibility should suppress the NameError and return False
-        self.assertEqual(False, self.checker_use.check_eligibility('fake'))
+        response = self.checker_use.check_eligibility('fake')
+        self.assertEqual(False, response.eligible)
+        self.assertEqual('No user found in MCommunity for fake', response.reason)
+        self.assertIsInstance(response.user, MCommunityUser)
+        self.assertIsInstance(response.errors, NameError)
 
     def test_affils_check_eligibility_not_eligible(self):
-        self.assertEqual(False, self.checker_affils.check_eligibility('nemcardr'))
+        response = self.checker_affils.check_eligibility('nemcardr')
+        self.assertEqual(False, response.eligible)
+        self.assertEqual('Retiree are not eligible for Test Service with no uSE', response.reason)
+        self.assertIsInstance(response.user, MCommunityUser)
+        self.assertIsNone(response.errors)
 
     def test_affils_check_eligibility_eligible(self):
-        self.assertEqual(True, self.checker_affils.check_eligibility('nemcardrs'))
+        response = self.checker_affils.check_eligibility('nemcards')
+        self.assertEqual(True, response.eligible)
+        self.assertEqual('Student are eligible for Test Service with no uSE', response.reason)
+        self.assertIsInstance(response.user, MCommunityUser)
+        self.assertIsNone(response.errors)
 
     def test_affils_check_eligibility_na(self):
         # check_eligibility should suppress the NameError and return False
-        self.assertEqual(False, self.checker_affils.check_eligibility('fake'))
+        response = self.checker_affils.check_eligibility('fake')
+        self.assertEqual(False, response.eligible)
+        self.assertEqual('No user found in MCommunity for fake', response.reason)
+        self.assertIsInstance(response.user, MCommunityUser)
+        self.assertIsInstance(response.errors, NameError)
 
     def test_deprovision_account_eligible(self):
         self.assertEqual(False, self.checker_use.deprovision_account_if_ineligible('nemcardf'))

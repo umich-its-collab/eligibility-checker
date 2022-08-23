@@ -1,11 +1,26 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import Union
+from typing import Union, Optional
 
 from collab_eligibility_checker.mcommunity.mcommunity_user import MCommunityUser
 from collab_eligibility_checker.mcommunity.mcommunity_group import MCommunityGroup
 
 logger = logging.getLogger(__name__)
+
+
+class CheckEligibilityResponse:
+    eligible: bool
+    reason: str
+    user: MCommunityUser
+    errors: Optional[BaseException]
+
+    def __init__(self, eligible: bool, reason: str, user: MCommunityUser, errors: Optional[BaseException]):
+        self.eligible = eligible
+        self.reason = reason
+        self.user = user
+        self.errors = errors
+
+        logger.info(f'{user.name} eligibility is {eligible} because {reason}.')
 
 
 class EligibilityChecker(ABC):
@@ -36,42 +51,40 @@ class EligibilityChecker(ABC):
     ##################
     # Public Methods #
     ##################
-    def check_eligibility(self, uniqname: str, validate_affiliation: bool = True) -> bool:
+    def check_eligibility(self, uniqname: str, validate_affiliation: bool = True) -> CheckEligibilityResponse:
         """
         Check whether a given user is eligible for the service based on uSE if self.service_entitlement is set, else by
         affiliations only
         :param uniqname: the U-M username of the user to check for eligibility (i.e. before @umich.edu in their email)
         :param validate_affiliation: validate that the uSE seems aligned with the user's affiliation
         (use prior to destructive actions in case of bugs in uSE); no effect if self.service_entitlement is None
-        :return: boolean for whether or not they are eligible
+        :return: CheckEligibilityResponse object containing eligibility information
         """
-        if uniqname in self.override_group_members:
-            logger.info(f'{uniqname} is eligible because they are in an override group.')
-            return True
+        user = MCommunityUser(uniqname, self.mcommunity_app_cn, self.mcommunity_secret)
+        if user.errors:
+            return CheckEligibilityResponse(eligible=False, reason=str(user.errors), user=user, errors=user.errors)
+        elif uniqname in self.override_group_members:
+            return CheckEligibilityResponse(eligible=True, reason='Override group member', user=user, errors=None)
         else:
-            try:
-                user = MCommunityUser(uniqname, self.mcommunity_app_cn, self.mcommunity_secret)
-            except NameError:  # The MCommunity user doesn't exist, therefore is ineligible
-                return False
             if self.service_entitlement:  # This services relies on uSE for eligibility
                 eligible = user.check_service_entitlement(self.service_entitlement)
-                logger.info(f'{self.service_entitlement} entitlement for {uniqname} is {eligible}.')
+                reason = f'{self.service_entitlement} entitlement is {eligible}'
                 if validate_affiliation:
-                    eligible_affiliations = self._check_affiliation_eligibility(user)
-                    if not eligible and eligible_affiliations:
-                        raise RuntimeError(
+                    eligible_via_affiliations = self._check_affiliation_eligibility(user)
+                    if not eligible and eligible_via_affiliations.eligible:
+                        error = RuntimeError(
                             f'Highest affiliation {user.highest_affiliation} shows {user.name} should have a valid '
-                            f'{self.service_entitlement} entitlement but they do not.\n EntityID: {user.entityid}\n'
-                            f'Service Entitlements: \n{user.service_entitlements}\n Affiliations: \n{user.affiliations}'
+                            f'{self.service_entitlement} entitlement but they do not'
                         )
+                        return CheckEligibilityResponse(eligible=True, reason=str(error), user=user, errors=error)
                     else:
                         logger.info(
                             f'{self.service_entitlement} service entitlement ({eligible}) and affiliations '
                             f'{user.highest_affiliation} validated for {user.name}.'
                         )
-                        return eligible
+                        return CheckEligibilityResponse(eligible=eligible, reason=reason, user=user, errors=None)
                 else:
-                    return eligible
+                    return CheckEligibilityResponse(eligible=eligible, reason=reason, user=user, errors=None)
             else:  # This service does not rely on uSE for eligibility
                 return self._check_affiliation_eligibility(user)  # No further validation necessary or possible
 
@@ -94,37 +107,29 @@ class EligibilityChecker(ABC):
     ###################
     # Private Methods #
     ###################
-    def _check_affiliation_eligibility(self, user: MCommunityUser) -> bool:
+    def _check_affiliation_eligibility(self, user: MCommunityUser) -> CheckEligibilityResponse:
         """
         Given an MCommunity user, check if their affiliation(s), including sponsored affiliate type if applicable,
         denote that they should be eligible for this service.
         :param user: MCommunityUser object for the user
-        :return: bool True if eligible based on affiliations, False if not
+        :return: CheckEligibilityResponse object containing eligibility information
         """
         user.populate_highest_affiliation()
         sa_type = user.check_sponsorship_type()
         if sa_type:  # This person is a sponsored affiliate type 1, 2, or 3
             if sa_type in self.eligible_sa_types:
-                logger.info(
-                    f'{user.name} ELIGIBLE: sponsored affiliates t{sa_type} are eligible for {self.service_friendly}.'
-                )
-                return True
+                eligible = True
+                reason = f'Sponsored affiliates t{sa_type} are eligible for {self.service_friendly}'
             else:
-                logger.info(
-                    f'{user.name} NOT ELIGIBLE: sponsored affiliates t{sa_type} are not eligible for '
-                    f'{self.service_friendly}.'
-                )
-                return False
+                eligible = False
+                reason = f'Sponsored affiliates t{sa_type} are not eligible for {self.service_friendly}'
         elif user.highest_affiliation in self.eligible_affiliations_minus_sa:
-            logger.info(
-                f'{user.name} ELIGIBLE: {user.highest_affiliation} are eligible for {self.service_friendly}.'
-            )
-            return True
+            eligible = True
+            reason = f'{user.highest_affiliation} are eligible for {self.service_friendly}'
         else:  # Neither sponsored affiliate type nor highest affiliation are in the eligible affiliations for service
-            logger.info(
-                f'{user.name} NOT ELIGIBLE: {user.highest_affiliation} are not eligible for {self.service_friendly}.'
-            )
-            return False
+            eligible = False
+            reason = f'{user.highest_affiliation} are not eligible for {self.service_friendly}'
+        return CheckEligibilityResponse(eligible=eligible, reason=reason, user=user, errors=None)
 
     @abstractmethod
     def _deprovision(self, uniqname) -> bool:

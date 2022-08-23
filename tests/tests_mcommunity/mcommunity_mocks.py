@@ -124,5 +124,5 @@ group_mock = [
         'umichGroupEmail': [b'test.group'],
         'owner': [b'uid=nemcardf,ou=People,dc=umich,dc=edu', b'uid=nemcardrs,ou=People,dc=umich,dc=edu'],
         'member': [b'uid=nemcardf,ou=People,dc=umich,dc=edu', b'uid=nemcardrs,ou=People,dc=umich,dc=edu',
-                   b'uid=nemcarda,ou=People,dc=umich,dc=edu', b'uid=nemcards,ou=People,dc=umich,dc=edu'],
+                   b'uid=nemcarda,ou=People,dc=umich,dc=edu'],
         'cn': [b'test-group']})]
