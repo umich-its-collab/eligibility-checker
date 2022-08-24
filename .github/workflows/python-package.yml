@@ -20,11 +20,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - uses: webfactory/ssh-agent@v0.5.4
+      with:
+        ssh-private-key: ${{ secrets.MCOMM }}
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
-        ssh-key: ${{ secrets.MCOMM }}
     - name: Install dependencies
       run: |
         sudo apt-get update -y
