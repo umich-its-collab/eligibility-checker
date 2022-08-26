@@ -1,7 +1,7 @@
 # eligibility-checker
 Check eligibility in the same way across all Collab services
 
-# License and Use
+## License and Use
 This package is NOT licensed for open-source use. It is only available for the University of Michigan ITS 
 Collaboration Services team.
 
