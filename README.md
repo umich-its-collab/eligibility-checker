@@ -1,6 +1,10 @@
 # eligibility-checker
 Check eligibility in the same way across all Collab services
 
+# License and Use
+This package is NOT licensed for open-source use. It is only available for the University of Michigan ITS 
+Collaboration Services team.
+
 # How to Use
 1. Add the following as a new line to your project's `requirements.txt` file, where the text after the `@` and before 
 the `#` is the name of the [tag/version](https://github.com/umich-its-collab/eligibility-checker/tags) of 
