@@ -9,6 +9,6 @@ setup(
       author_email='4help@umich.edu',
       packages=['eligibility_checker'],
       install_requires=[
-            'git+https://github.com/umich-its-collab/mcommunity-tools.git@v0.2#egg=mcommunity'
+            'mcommunity @ git+https://github.com/umich-its-collab/mcommunity-tools.git@v0.2#egg=mcommunity'
       ]
 )
