@@ -10,6 +10,5 @@ setup(
       packages=['eligibility_checker'],
       install_requires=[
             'mcommunity @ git+https://github.com/umich-its-collab/mcommunity-tools.git@v0.2#egg=mcommunity'
-      ],
-      package_dir={'': 'lib'}
+      ]
 )
