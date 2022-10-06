@@ -28,7 +28,7 @@ Ensure the following attributes are set properly:
    service. Default is `[1]`.
 4. In the context that you need it, create an instance of your `EligibilityChecker` child class and pass in the 
 MCommunity app cname and secret as parameters.
-   1. *Example*: `EligibilityCheckerSubClass('ITS-Dropbox-McDirApp001', '0xjemsozj4'')`
+   1. *Example*: `EligibilityCheckerSubClass('ITS-Dropbox-McDirApp001', '0xjemsozj4')`
 5. For each user that you need to check eligibility for in this context, use the same class instance and pass the 
 uniqname to the `check_eligibility` method.
 
