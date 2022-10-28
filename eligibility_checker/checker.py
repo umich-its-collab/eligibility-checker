@@ -22,6 +22,12 @@ class CheckEligibilityResponse:
 
         logger.info(f'{user.name} eligibility is {eligible} because {reason}.')
 
+    def to_dict(self):
+        d = self.__dict__.copy()
+        d['user'] = self.user.to_dict()
+        d['errors'] = self.errors.__repr__()
+        return d
+
 
 class EligibilityChecker(ABC):
     service_friendly: str  # Name of the service in Capital Case (ex: Google, Microsoft Teams, Slack)
