@@ -35,7 +35,7 @@ class EligibilityCheckerTestCase(unittest.TestCase):
         self.mock.side_effect = mocks.mcomm_side_effect
 
     def test_init_populates_override_group_members(self):
-        self.assertEqual(['nemcardf', 'nemcardrs', 'nemcarda'], self.checker_use.override_group_members)
+        self.assertCountEqual(['nemcardf', 'nemcardrs', 'nemcarda'], self.checker_use.override_group_members)
 
     @patch('eligibility_checker.checker.EligibilityChecker._validate')
     def test_init_validates_attributes(self, magic_mock):
