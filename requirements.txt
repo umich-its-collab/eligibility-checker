@@ -1,4 +1,4 @@
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 python-ldap==3.4.0
--e git+https://github.com/umich-its-collab/mcommunity-tools.git@v0.7#egg=mcommunity
+-e git+https://github.com/umich-its-collab/mcommunity-tools.git@v0.8#egg=mcommunity
