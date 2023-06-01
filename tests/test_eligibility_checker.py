@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import patch
 
 from eligibility_checker.checker import EligibilityChecker
-from mcommunity.mcommunity_user import MCommunityUser
+from mcommunity import MCommunityUser
 import mcommunity.mcommunity_mocks as mocks
 
 test_user = 'nemcardf'
@@ -11,11 +11,13 @@ test_user = 'nemcardf'
 
 class EligibilityCheckerUSETestClass(EligibilityChecker):
     service_friendly = 'Test Service with uSE'
+    override_groups = ['collab-iam-admins', 'something-iam-primary']
 
 
 class EligibilityCheckerAffiliationsTestClass(EligibilityChecker):
     service_friendly = 'Test Service with no uSE'
     service_entitlement = None
+    override_groups = ['collab-iam-admins', 'something-iam-primary']
 
 
 class EligibilityCheckerTestCase(unittest.TestCase):
@@ -35,7 +37,8 @@ class EligibilityCheckerTestCase(unittest.TestCase):
         self.mock.side_effect = mocks.mcomm_side_effect
 
     def test_init_populates_override_group_members(self):
-        self.assertCountEqual(['nemcardf', 'nemcardrs', 'nemcarda'], self.checker_use.override_group_members)
+        self.assertCountEqual(['nemcardf', 'nemcardrs', 'nemcarda', 'nemcardts'],
+                              self.checker_use.override_group_members)
 
     @patch('eligibility_checker.checker.EligibilityChecker._validate')
     def test_init_validates_attributes(self, magic_mock):
@@ -119,7 +122,7 @@ class EligibilityCheckerTestCase(unittest.TestCase):
         self.assertIsNone(response.errors)
 
     def test_use_check_eligibility_with_validation_eligible(self):
-        response = self.checker_use.check_eligibility('nemcardts')
+        response = self.checker_use.check_eligibility('nemcardsa1')
         self.assertEqual(True, response.eligible)
         self.assertEqual('enterprise entitlement is True', response.reason)
         self.assertIsInstance(response.user, MCommunityUser)
