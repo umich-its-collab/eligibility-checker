@@ -52,6 +52,7 @@ class EligibilityChecker(ABC):
             for group in self.override_groups:  # Populate override_group_members
                 self.override_group_members += MCommunityGroup(
                     group, self.mcommunity_app_cn, self.mcommunity_secret).members
+                self.override_group_members = list(set(self.override_group_members))  # Remove duplicates
         self._validate()
 
     ##################
