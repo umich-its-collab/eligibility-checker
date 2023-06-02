@@ -27,7 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update -y
-        sudo apt-get install libsasl2-dev python-dev libldap2-dev libssl-dev -y
+        sudo apt-get install libsasl2-dev python2-dev libldap2-dev libssl-dev -y
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
