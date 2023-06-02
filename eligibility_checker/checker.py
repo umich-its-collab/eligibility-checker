@@ -1,9 +1,9 @@
 import logging
 from abc import ABC
 from typing import Union, Optional
+from warnings import warn
 
-from mcommunity.mcommunity_group import MCommunityGroup
-from mcommunity.mcommunity_user import MCommunityUser
+from mcommunity import MCommunityGroup, MCommunityUser
 
 logger = logging.getLogger(__name__)
 
@@ -50,9 +50,14 @@ class EligibilityChecker(ABC):
         self.mcommunity_secret = mcommunity_secret
         if not self.override_group_members:  # Don't overwrite if it is already populated
             for group in self.override_groups:  # Populate override_group_members
-                self.override_group_members += MCommunityGroup(
-                    group, self.mcommunity_app_cn, self.mcommunity_secret).members
-                self.override_group_members = list(set(self.override_group_members))  # Remove duplicates
+                members = MCommunityGroup(group, self.mcommunity_app_cn, self.mcommunity_secret).members
+                if not members:
+                    raise RuntimeError(f'Got 0 members for {group}. If the group is not being used anymore, remove it '
+                                       f'from override_groups. If it is being used and has members, make sure the '
+                                       f'MCommunity app {self.mcommunity_app_cn} is an owner of the MCommunity group '
+                                       f'to give it access to read group membership.')
+                self.override_group_members += members
+        self.override_group_members = list(set(self.override_group_members))  # Remove duplicates
         self._validate()
 
     ##################
@@ -125,7 +130,7 @@ class EligibilityChecker(ABC):
     def _validate(self) -> None:
         """
         Validate the class attributes.
-        :return:
+        :return: Nothing
         """
         if 'collab-iam-admins' not in self.override_groups:
             raise RuntimeError(f'collab-iam-admins is missing from the override_groups: {self.override_groups}')
@@ -134,8 +139,9 @@ class EligibilityChecker(ABC):
                 raise RuntimeError(f'SponsoredAffiliate cannot be in eligible_affiliations_minus_sa. Eligible '
                                    f'SponsoredAffiliate type numbers go in eligible_sa_types')
             elif len(self.eligible_affiliations_minus_sa) < 4:
-                raise UserWarning(f'eligible_affiliations_minus_sa is unusually short. Faculty, RegularStaff, '
-                                  f'Students, and TemporaryStaff are eligible for almost every service; are you sure?')
+                warn(f'eligible_affiliations_minus_sa is unusually short: {self.eligible_affiliations_minus_sa}. '
+                     f'Faculty, RegularStaff, Students, and TemporaryStaff are eligible for almost every service; are '
+                     f'you sure?')
             for i in self.eligible_affiliations_minus_sa:
                 if i not in ['Faculty', 'RegularStaff', 'Student', 'TemporaryStaff', 'Alumni', 'Retiree']:
                     raise RuntimeError(f'eligible_affiliations_minus_sa contains an unfamiliar affiliation {i} (should '
@@ -147,4 +153,4 @@ class EligibilityChecker(ABC):
                 if i not in range(1, 4):
                     raise RuntimeError(f'eligible_sa_types contains an invalid entry {i} (must be 1, 2, and/or 3)')
         else:
-            raise UserWarning('eligible_sa_types is empty. Are you sure that no sponsored affiliates are eligible?')
+            warn('eligible_sa_types is empty. Are you sure that no sponsored affiliates are eligible?')
