@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
       name='eligibility-checker',
-      version='.11',
+      version='0.11',
       description='Standardized eligibility checking for U-M ITS Collaboration Services',
       url='https://github.com/umich-its-collab/eligibility-checker',
       author='Maggie Davidson',
